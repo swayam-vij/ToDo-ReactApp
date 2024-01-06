@@ -1,58 +1,97 @@
-import React, { useEffect, useState } from "react";
-import { Form } from "./Form";
-import "./styles.css";
-import { List } from "./List";
+import React, { useState } from "react";
 
-export default function App() {
-  const [theme, setTheme] = useState("light");
+const App = () => {
+  const [newTask, setNewTask] = useState("");
+  const [tasks, setTasks] = useState([]);
 
-  const toggleTheme = () => {
-    if (theme === "light") {
-      setTheme("dark");
-      document.body.style.backgroundColor = "#333";
-    } else {
-      setTheme("light");
-      document.body.style.backgroundColor = "#f0f0f0";
+  const handleInputChange = (e) => {
+    setNewTask(e.target.value);
+  };
+
+  const addTask = () => {
+    if (newTask.trim() !== "") {
+      setTasks([...tasks, newTask]);
+      setNewTask("");
     }
   };
 
-  const [todos, setTodos] = useState(() => {
-    const localValue = localStorage.getItem("ITEMS");
-    if (localValue == null) return [];
+  const deleteTask = (index) => {
+    const updatedTasks = tasks.filter((_, i) => i !== index);
+    setTasks(updatedTasks);
+  };
 
-    return JSON.parse(localValue);
-  });
+  const moveTaskUp = (index) => {
+    if (index > 0) {
+      const updatedTasks = [...tasks];
+      const temp = updatedTasks[index];
+      updatedTasks[index] = updatedTasks[index - 1];
+      updatedTasks[index - 1] = temp;
+      setTasks(updatedTasks);
+    }
+  };
 
-  useEffect(() => {
-    localStorage.setItem("ITEMS", JSON.stringify(todos));
-  }, [todos]);
-
-  function addTodo(title) {
-    setTodos((currentTodos) => [
-      ...currentTodos,
-      { id: crypto.randomUUID(), title, completed: false },
-    ]);
-  }
-
-  function toggleTodo(id, completed) {
-    setTodos((currentTodos) =>
-      currentTodos.map((todo) =>
-        todo.id === id ? { ...todo, completed } : todo
-      )
-    );
-  }
-
-  function deleteTodo(id) {
-    setTodos((currentTodos) => currentTodos.filter((todo) => todo.id !== id));
-  }
+  const moveTaskDown = (index) => {
+    if (index < tasks.length - 1) {
+      const updatedTasks = [...tasks];
+      const temp = updatedTasks[index];
+      updatedTasks[index] = updatedTasks[index + 1];
+      updatedTasks[index + 1] = temp;
+      setTasks(updatedTasks);
+    }
+  };
 
   return (
-    <div className={`app ${theme}`}>
-      <div className="theme-switch">
-        <button onClick={toggleTheme}>Toggle Theme</button>
+    <div className="min-h-screen text-white bg-gradient-to-b from-black to-gray-500 justify-center items-center p-4">
+      <div className="max-w-md mx-auto mt-8 bg-white rounded shadow-lg">
+        <h1 className="text-2xl font-bold mb-4 text-black">To-Do List</h1>
+        <div className="mb-4 flex">
+          <input
+            className="flex-grow mr-2 p-2 border border-gray-300 rounded text-black"
+            type="text"
+            placeholder="Enter To-Do Task"
+            value={newTask}
+            onChange={handleInputChange}
+          />
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+            onClick={addTask}
+          >
+            Add Task
+          </button>
+        </div>
+        <ul className="mt-4">
+          {tasks.map((task, index) => (
+            <li
+              key={index}
+              className="flex items-center justify-between mb-2 px-4"
+            >
+              <span className="text-black">{task}</span>
+              <div>
+                <button
+                  className="text-blue-500 mr-2"
+                  onClick={() => moveTaskUp(index)}
+                >
+                  Up
+                </button>
+                <button
+                  className="text-blue-500 mr-2"
+                  onClick={() => moveTaskDown(index)}
+                >
+                  Down
+                </button>
+                <button
+                  className="text-red-500"
+                  onClick={() => deleteTask(index)}
+                >
+                  Delete
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
-      <Form onSubmit={addTodo} />
-      <List todos={todos} toggleTodo={toggleTodo} deleteTodo={deleteTodo} />
     </div>
   );
-}
+};
+
+export default App;
